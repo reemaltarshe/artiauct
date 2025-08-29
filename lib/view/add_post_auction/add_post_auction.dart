@@ -4,6 +4,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:get/get.dart';
+import 'package:handmade/controllers/auction_controller.dart';
 import 'package:handmade/view/home/home.dart';
 import 'package:handmade/view/main_screen/main_screen.dart';
 
@@ -17,6 +18,7 @@ class AddPostAuction extends StatefulWidget {
   State<AddPostAuction> createState() => _MyAddPostAuction();
 }
 class _MyAddPostAuction extends State<AddPostAuction> {
+  final AuctionController auctionController = Get.put(AuctionController());
   String sortValue = 'Candle';
 
   @override
@@ -96,13 +98,15 @@ class _MyAddPostAuction extends State<AddPostAuction> {
                   style: TextStyle(fontSize: getFontSize(16),),),),
               SizedBox(height:getVerticalSize(2) ,),
               Padding(padding: getPadding(left: 30,right: 30),
-                child: TextField(
+                child: Obx(() => TextField(
+                  controller: auctionController.nameController,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: EdgeInsets.symmetric(vertical: 3),
                       focusedBorder: OutlineInputBorder(),
-                      border: OutlineInputBorder()),),),
+                      border: OutlineInputBorder()),
+                )),),
               SizedBox(height:getVerticalSize(10) ,),
               Container(
                 margin: getMargin(right: 260),
@@ -110,12 +114,16 @@ class _MyAddPostAuction extends State<AddPostAuction> {
                   style: TextStyle(fontSize: getFontSize(16),),),),
               SizedBox(height:getVerticalSize(2) ,),
               Padding(padding:getPadding(left: 30,right: 30),
-                child: TextField(maxLines: 2,
+                child: Obx(() => TextField(
+                  controller: auctionController.descriptionController,
+                  maxLines: 2,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     focusedBorder: OutlineInputBorder(),
-                    border: OutlineInputBorder(),),),),
+                    border: OutlineInputBorder(),
+                  ),
+                )),),
               SizedBox(height:getVerticalSize(10) ,),
               Container(
                 margin: getMargin(right: 270),
@@ -123,13 +131,17 @@ class _MyAddPostAuction extends State<AddPostAuction> {
                   style: TextStyle(fontSize: getFontSize(16),),),),
               SizedBox(height:getVerticalSize(2) ,),
               Padding(padding: getPadding(left: 30,right: 30),
-                child: TextField(
+                child: Obx(() => TextField(
+                  controller: auctionController.startPriceController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(vertical: 4),
                     focusedBorder: OutlineInputBorder(),
-                    border: OutlineInputBorder(),),),),
+                    border: OutlineInputBorder(),
+                  ),
+                )),),
               SizedBox(height: getVerticalSize(10),),
               Container(
                 margin: getMargin(right: 280),
@@ -165,6 +177,7 @@ class _MyAddPostAuction extends State<AddPostAuction> {
                         setState(() {
                           sortValue = newValue!;
                         });
+                        auctionController.categoryController.text = newValue!;
                       },
                       items: <String>[
                         'Candle',
@@ -193,25 +206,50 @@ class _MyAddPostAuction extends State<AddPostAuction> {
                   style: TextStyle(fontSize: getFontSize(16),),),),
               SizedBox(height:getVerticalSize(2),),
               Padding(padding: getPadding(left: 30,right: 30),
-                child: TextField(
+                child: Obx(() => TextField(
+                  controller: auctionController.endDateController,
+                  readOnly: true,
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().add(Duration(days: 1)),
+                      firstDate: DateTime.now().add(Duration(days: 1)),
+                      lastDate: DateTime.now().add(Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      auctionController.setEndDate(picked);
+                    }
+                  },
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: EdgeInsets.symmetric(vertical: 4),
                     focusedBorder: OutlineInputBorder(),
-                    border: OutlineInputBorder(),),),),
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                )),),
               SizedBox(height: getVerticalSize(10),),
               Container(
                   padding: getPadding(top: 10,left: 30,right: 30),
                   child:
-                  MaterialButton(onPressed: (){
-                    Get.to(MainScreen());
-                  },
+                  Obx(() => MaterialButton(
+                    onPressed: auctionController.isLoading.value ? null : () async {
+                      final success = await auctionController.createAuction();
+                      if (success) {
+                        auctionController.showSuccess('Auction created successfully!');
+                      } else {
+                        auctionController.showError(auctionController.errorMessage.value);
+                      }
+                    },
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    child: Text("Add",style: TextStyle(fontSize: getFontSize(16)),),
-                    color:Color(0XFFFFCDAC),
+                    child: auctionController.isLoading.value 
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text("Add", style: TextStyle(fontSize: getFontSize(16))),
+                    color: Color(0XFFFFCDAC),
                     minWidth: getHorizontalSize(195),
-                    height: getVerticalSize(40),)
+                    height: getVerticalSize(40),
+                  ))
               ),
             ],
           ),

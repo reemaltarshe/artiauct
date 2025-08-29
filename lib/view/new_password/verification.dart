@@ -1,8 +1,7 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:get/get.dart';
+import 'package:handmade/controllers/auth_controller.dart';
 import 'package:handmade/view/new_password/new_password.dart';
 
 class Verification extends StatefulWidget {
@@ -15,6 +14,8 @@ class Verification extends StatefulWidget {
 }
 
 class _MyVery extends State<Verification> {
+  final AuthController authController = Get.put(AuthController());
+  
   // أربعة Controllers لكل خانة
   final List<TextEditingController> controllers =
   List.generate(4, (_) => TextEditingController());
@@ -28,24 +29,12 @@ class _MyVery extends State<Verification> {
     String otp = getOtp();
     print('OTP: $otp'); // طباعة الكود
 
-    final response = await http.post(
-      Uri.parse('http://192.168.100.104:8000/register/verify-otp/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': widget.email,
-        'otp_code': otp,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم التحقق بنجاح')),
-      );
+    final success = await authController.verifyOTP(widget.email, otp);
+    if (success) {
+      authController.showSuccess('تم التحقق بنجاح');
       Get.to(NewPassword());
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('رمز خاطئ أو منتهي')),
-      );
+      authController.showError(authController.errorMessage.value);
     }
   }
 

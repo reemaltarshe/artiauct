@@ -4,6 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:get/get.dart';
+import 'package:handmade/controllers/product_controller.dart';
 import 'package:handmade/view/main_screen/main_screen.dart';
 void main() {
   runApp(AddPostSale());
@@ -15,6 +16,7 @@ class AddPostSale extends StatefulWidget {
   State<AddPostSale> createState() => _MyAddPostSale();
 }
 class _MyAddPostSale extends State<AddPostSale> {
+  final ProductController productController = Get.put(ProductController());
   String? sortValue = null;
   @override
   Widget build(BuildContext context) {
@@ -92,10 +94,16 @@ class _MyAddPostSale extends State<AddPostSale> {
                     ),),),
                 SizedBox(height:getVerticalSize(1),),
                 Padding(padding: getPadding(left: 30,right: 30),
-                  child: TextField(
-                    decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 4),fillColor: Colors.white,filled: true,
-                        focusedBorder: OutlineInputBorder(),
-                        border: OutlineInputBorder()),),),
+                  child: Obx(() => TextField(
+                    controller: productController.nameController,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      fillColor: Colors.white,
+                      filled: true,
+                      focusedBorder: OutlineInputBorder(),
+                      border: OutlineInputBorder(),
+                    ),
+                  )),),
                 SizedBox(height: getVerticalSize(12),),
                 Container(
                   margin: getMargin(right: 250),
@@ -104,10 +112,16 @@ class _MyAddPostSale extends State<AddPostSale> {
                     ),),),
                 SizedBox(height:getHorizontalSize(1),),
                 Padding(padding: getPadding(left: 30,right: 30),
-                  child: TextField(maxLines: 2,
+                  child: Obx(() => TextField(
+                    controller: productController.descriptionController,
+                    maxLines: 2,
                     decoration: InputDecoration(
-                      focusedBorder: OutlineInputBorder(),fillColor: Colors.white,filled: true,
-                      border: OutlineInputBorder(),),),),
+                      focusedBorder: OutlineInputBorder(),
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(),
+                    ),
+                  )),),
                 SizedBox(height:getVerticalSize(12),),
                 Container(
                   margin: getMargin(right: 295),
@@ -116,10 +130,17 @@ class _MyAddPostSale extends State<AddPostSale> {
                     ),),),
                 SizedBox(height:getVerticalSize(2),),
                 Padding(padding: getPadding(left: 30,right: 30),
-                  child: TextField(
-                    decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 4),
-                      focusedBorder: OutlineInputBorder(),fillColor: Colors.white,filled: true,
-                      border: OutlineInputBorder(),),),),
+                  child: Obx(() => TextField(
+                    controller: productController.priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      focusedBorder: OutlineInputBorder(),
+                      fillColor: Colors.white,
+                      filled: true,
+                      border: OutlineInputBorder(),
+                    ),
+                  )),),
                 SizedBox(height: getVerticalSize(12),),
                 Container(
                   margin: getMargin(right: 270),
@@ -155,6 +176,7 @@ class _MyAddPostSale extends State<AddPostSale> {
                               setState(() {
                                 sortValue = newValue;
                               });
+                              productController.categoryController.text = newValue;
                             }
                           },
 
@@ -187,9 +209,23 @@ class _MyAddPostSale extends State<AddPostSale> {
                   padding: getPadding(left: 30,right: 30,top: 20),
                   child: Column(
                     children: [
-                      MaterialButton(onPressed: (){
-                        Get.to(MainScreen());
-                      },child: Text("Add",style: TextStyle(fontSize: getFontSize(16)),),color:Color(0XFFFFCDAC),minWidth: 195,height: 40,shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),)
+                      Obx(() => MaterialButton(
+                        onPressed: productController.isLoading.value ? null : () async {
+                          final success = await productController.createProduct();
+                          if (success) {
+                            productController.showSuccess('Product added successfully!');
+                          } else {
+                            productController.showError(productController.errorMessage.value);
+                          }
+                        },
+                        child: productController.isLoading.value 
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text("Add", style: TextStyle(fontSize: getFontSize(16))),
+                        color: Color(0XFFFFCDAC),
+                        minWidth: 195,
+                        height: 40,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ))
                     ],
                   ),
                 )

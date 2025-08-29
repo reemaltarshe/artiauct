@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:handmade/view/messages/chat_model.dart';
+import 'package:handmade/controllers/message_controller.dart';
 import 'message_widget.dart';
 
 void main() {
@@ -17,6 +18,7 @@ class Chatting extends StatefulWidget {
 }
 
 class _chattingState extends State<Chatting> {
+  final MessageController messageController = Get.put(MessageController());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,14 +70,14 @@ class _chattingState extends State<Chatting> {
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30), topRight: Radius.circular(30)),
                 ),
-                child: ListView.separated(
+                child: Obx(() => ListView.separated(
                     itemBuilder: (context, index) => Bubblemessage(
-                      message: messages[index],
+                      message: messageController.messages[index],
                     ),
                     separatorBuilder: (context, index) => SizedBox(
                       height: 8,
                     ),
-                    itemCount: messages.length),
+                    itemCount: messageController.messages.length)),
               ))
         ],
       ),
@@ -97,16 +99,22 @@ class _chattingState extends State<Chatting> {
         child: Row(
           children: [
             Expanded(
-                child: TextField(
+                child: Obx(() => TextField(
+                  controller: messageController.messageController,
                   decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: "  Enter your message",
                       hintStyle: TextStyle(fontSize: 16, color: Color(0xffB7B7B7))),
-                )),
-            CircleAvatar(
+                ))),
+            Obx(() => CircleAvatar(
               backgroundColor: Color(0xffFFbd80),
-              child: Icon(Icons.send, color: Color(0xff5D5E59)),
-            )
+              child: IconButton(
+                icon: Icon(Icons.send, color: Color(0xff5D5E59)),
+                onPressed: messageController.isLoading.value ? null : () {
+                  messageController.sendCurrentMessage();
+                },
+              ),
+            ))
           ],
         ),
       ),

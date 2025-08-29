@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:handmade/core/units/size_utils.dart';
+import 'package:handmade/controllers/comment_controller.dart';
 import 'package:handmade/view/signup/signup.dart';
 
 
@@ -12,21 +13,10 @@ class ProductCommentsSection extends StatefulWidget {
 }
 
 class _ProductCommentsSectionState extends State<ProductCommentsSection> {
-  final List<String> _comments = [
-    'This product is perfect',
-    'very beautiful thank you',
-    'the quality is good',
-  ];
-  final TextEditingController _commentController = TextEditingController();
+  final CommentController commentController = Get.put(CommentController());
 
   void _addComment() {
-    final text = _commentController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _comments.insert(0, text);
-      _commentController.clear();
-    });
+    commentController.addCurrentComment();
   }
 
   @override
@@ -46,7 +36,7 @@ class _ProductCommentsSectionState extends State<ProductCommentsSection> {
                   color: Color(0xFFFFA45D),
                 ),
               ),SizedBox(width: 3,),
-              Text('(${_comments.length})',style: TextStyle(
+              Obx(() => Text('(${commentController.commentCount})',style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 17,
                 color: Color(0xFFFFA45D),
@@ -55,7 +45,7 @@ class _ProductCommentsSectionState extends State<ProductCommentsSection> {
           ),
 
           const SizedBox(height: 12),
-          ..._comments.map((comment) => Card(
+          Obx(() => ...commentController.comments.map((comment) => Card(
 
             margin: EdgeInsets.symmetric(vertical: 6),
             elevation: 0,
@@ -65,7 +55,7 @@ class _ProductCommentsSectionState extends State<ProductCommentsSection> {
                 backgroundColor: Color(0xffFFbd80),
                 child: Icon(Icons.person, color: Color(0xff5D5E59)),
               ),
-              title: Text(style: TextStyle(fontSize: getFontSize(15)),comment, textAlign: TextAlign.left),
+              title: Text(style: TextStyle(fontSize: getFontSize(15)),comment['comment'], textAlign: TextAlign.left),
             ),
           )),
           Divider(color: Color(0xFFFFA45D),
@@ -76,8 +66,8 @@ class _ProductCommentsSectionState extends State<ProductCommentsSection> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _commentController,
+                child: Obx(() => TextField(
+                  controller: commentController.commentController,
                   decoration: InputDecoration(
                     hintText: 'Write comment...',
                     hintStyle: TextStyle(fontSize: 17, color: Color(0xff5D5E59)),

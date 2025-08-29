@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:get/get.dart';
+import 'package:handmade/controllers/auth_controller.dart';
 
 
 
@@ -12,7 +13,12 @@ class Edit extends StatefulWidget {
   State<Edit> createState() => _MyEdit();
 }
 class _MyEdit extends State<Edit> {
-  bool _isObscure = true;
+  final AuthController authController = Get.put(AuthController());
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController bioController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +92,8 @@ class _MyEdit extends State<Edit> {
                       padding: getPadding(top: 30),
                       child: SizedBox(
                           width: getHorizontalSize(255),
-                          child: TextField(
+                          child: Obx(() => TextField(
+                            controller: nameController,
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(vertical: 4),
@@ -124,10 +131,11 @@ class _MyEdit extends State<Edit> {
               ),
               Padding(
                   padding:getPadding(left: 20, right: 20),
-                  child: TextField(
+                  child: Obx(() => TextField(
+                    controller: bioController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                        hintText: "verachahem",
+                        hintText: "Tell us about yourself",
                         hintStyle: TextStyle(
                           color: Color(0xffB7B7B7),
                           fontSize: getFontSize(16),
@@ -147,12 +155,13 @@ class _MyEdit extends State<Edit> {
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.black),
                           borderRadius: BorderRadius.circular(10),)),
-                  )),
+                  ))),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
+                  child: Obx(() => TextField(
+                    controller: passwordController,
                     textInputAction: TextInputAction.next,
-                    obscureText: _isObscure,
+                    obscureText: !authController.isPasswordVisible.value,
                     decoration: InputDecoration(
                         hintText: "*********",
                         hintStyle: TextStyle(
@@ -160,11 +169,10 @@ class _MyEdit extends State<Edit> {
                           fontSize: getFontSize(16),
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility,
+                          icon: Icon(authController.isPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
                           ),
                           onPressed: () {
-                            setState(() {
-                              _isObscure = !_isObscure;});
+                            authController.togglePasswordVisibility();
                           },
                         ),
                         fillColor: Color(0xffFFFFFF),
@@ -186,10 +194,11 @@ class _MyEdit extends State<Edit> {
                   )),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
+                  child: Obx(() => TextField(
+                    controller: emailController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                        hintText: "verachahem@gmail.com",
+                        hintText: "Enter your email",
                         hintStyle: TextStyle(
                           color: Color(0xffB7B7B7),
                           fontSize: getFontSize(16),
@@ -212,7 +221,8 @@ class _MyEdit extends State<Edit> {
                   )),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
+                  child: Obx(() => TextField(
+                    controller: phoneController,
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                         hintText: "Enter your phone",
@@ -248,13 +258,16 @@ class _MyEdit extends State<Edit> {
                       decoration: BoxDecoration(
                           color: Color(0xffFFCDAC),
                           borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: MaterialButton(
+                      child: Obx(() => MaterialButton(
                           child: Text(
                             'Update',
                             style: TextStyle(
                                 fontSize: getFontSize(16), color: Color(0xff5D5E59),fontWeight: FontWeight.bold),
                           ),
-                          onPressed: () {})))
+                          onPressed: () async {
+                            // Here you would typically call the API to update the profile
+                            authController.showSuccess('Profile updated successfully!');
+                          })))
             ],
           ),
         ));

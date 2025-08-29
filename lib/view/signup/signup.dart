@@ -3,13 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:handmade/core/units/size_utils.dart';
+import 'package:handmade/controllers/auth_controller.dart';
 import 'package:handmade/view/home/home.dart';
 import 'package:handmade/view/login/login.dart';
 import 'package:handmade/view/main_screen/main_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
 import '../new_password/verification.dart';
 
 
@@ -20,39 +17,13 @@ class SignUp extends StatefulWidget {
   State<SignUp> createState() => _MySign();
 }
 class _MySign extends State<SignUp> {
-  bool _isObscure = true;
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final AuthController authController = Get.put(AuthController());
 
-  // 🚀 دالة التسجيل
+  // Register user method
   Future<void> registerUser() async {
-    final url = Uri.parse('http://192.168.100.104:8000/register/');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': usernameController.text,
-        'first_name': firstNameController.text,
-        'phone_number': phoneController.text,
-        'email': emailController.text,
-        'password': passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      final enteredemail=emailController.text;
-      final data = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ ${data['message']}')),
-      );
-      Get.to(Verification(email:enteredemail));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ ${response.body}')),
-      );
+    final success = await authController.register();
+    if (!success) {
+      authController.showError(authController.errorMessage.value);
     }
   }
 
@@ -108,8 +79,8 @@ class _MySign extends State<SignUp> {
                       padding: getPadding(top: 15),
                       child: SizedBox(
                           width: getHorizontalSize(265),
-                          child: TextField(
-                            controller: firstNameController,
+                          child: Obx(() => TextField(
+                            controller: authController.firstNameController,
                             textInputAction: TextInputAction.next,
                             decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(vertical: 4),
@@ -143,8 +114,8 @@ class _MySign extends State<SignUp> {
               SizedBox(height: getVerticalSize(30),),
               Padding(
                   padding: getPadding(left: 20, right: 20),
-                  child: TextField(
-                    controller: usernameController,
+                                            child: Obx(() => TextField(
+                            controller: authController.usernameController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                         hintText: "Enter your username",
@@ -172,10 +143,10 @@ class _MySign extends State<SignUp> {
                   )),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
-                    controller:  passwordController,
+                  child: Obx(() => TextField(
+                    controller: authController.passwordController,
                     textInputAction: TextInputAction.next,
-                    obscureText: _isObscure,
+                    obscureText: !authController.isPasswordVisible.value,
                     decoration: InputDecoration(
                         hintText: "Enter your Password",
                         hintStyle: TextStyle(
@@ -183,11 +154,10 @@ class _MySign extends State<SignUp> {
                           fontSize: getFontSize(16),
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility,
+                          icon: Icon(authController.isPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
                           ),
                           onPressed: () {
-                            setState(() {
-                              _isObscure = !_isObscure;});
+                            authController.togglePasswordVisibility();
                           },
                         ),
                         fillColor: Color(0xffFFFFFF),
@@ -211,8 +181,8 @@ class _MySign extends State<SignUp> {
                   )),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
-                    controller: emailController ,
+                  child: Obx(() => TextField(
+                    controller: authController.emailController,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                         hintText: "Enter your email",
@@ -239,8 +209,8 @@ class _MySign extends State<SignUp> {
                   )),
               Padding(
                   padding: getPadding(left: 20, right: 20, top: 30),
-                  child: TextField(
-                    controller: phoneController,
+                  child: Obx(() => TextField(
+                    controller: authController.phoneController,
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                         hintText: "Enter your phone",

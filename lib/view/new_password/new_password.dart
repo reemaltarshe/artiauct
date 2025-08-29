@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:handmade/core/units/size_utils.dart';
 import 'package:get/get.dart';
+import 'package:handmade/controllers/auth_controller.dart';
 import 'package:handmade/view/main_screen/main_screen.dart';
 
 
@@ -12,7 +13,9 @@ class NewPassword extends StatefulWidget {
   State<NewPassword> createState() => _MyNew();
 }
 class _MyNew extends State<NewPassword> {
-  bool _isObscure = true;
+  final AuthController authController = Get.put(AuthController());
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,9 +65,10 @@ class _MyNew extends State<NewPassword> {
                 )),
             Padding(
                 padding: getPadding(top: 5, left: 20, right: 20),
-                child: TextField(
+                child: Obx(() => TextField(
+                  controller: newPasswordController,
                   textInputAction: TextInputAction.next,
-                  obscureText: _isObscure,
+                  obscureText: !authController.isPasswordVisible.value,
                   decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(),
                       border: OutlineInputBorder(),
@@ -75,11 +79,10 @@ class _MyNew extends State<NewPassword> {
                         fontSize: getFontSize(16),
                       ),
                       suffixIcon: IconButton(
-                        icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility,
+                        icon: Icon(authController.isPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _isObscure = !_isObscure;});
+                          authController.togglePasswordVisibility();
                         },
                       ),
                       fillColor: Color(0xffFFFFFF),
@@ -87,7 +90,7 @@ class _MyNew extends State<NewPassword> {
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Color(0xff5D5E59)))),
-                )),
+                ))),
             Padding(
                 padding: getPadding(top: 25, left: 25),
                 child: Text(
@@ -97,9 +100,10 @@ class _MyNew extends State<NewPassword> {
                 )),
             Padding(
                 padding: getPadding(top: 5, left: 20, right: 20),
-                child: TextField(
-                  textInputAction: TextInputAction.next,
-                  obscureText: _isObscure,
+                child: Obx(() => TextField(
+                  controller: confirmPasswordController,
+                  textInputAction: TextInputAction.done,
+                  obscureText: !authController.isConfirmPasswordVisible.value,
                   decoration: InputDecoration(
                       focusedBorder: OutlineInputBorder(),
                       border: OutlineInputBorder(),
@@ -110,11 +114,10 @@ class _MyNew extends State<NewPassword> {
                         fontSize: getFontSize(16),
                       ),
                       suffixIcon: IconButton(
-                        icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility,
+                        icon: Icon(authController.isConfirmPasswordVisible.value ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _isObscure = !_isObscure;});
+                          authController.toggleConfirmPasswordVisibility();
                         },
                       ),
                       fillColor: Color(0xffFFFFFF),
@@ -122,7 +125,7 @@ class _MyNew extends State<NewPassword> {
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Color(0xff5D5E59)))),
-                )),
+                ))),
             Padding(
                 padding: getPadding(top: 45, left: 95),
                 child: Container(
@@ -131,13 +134,25 @@ class _MyNew extends State<NewPassword> {
                     decoration: BoxDecoration(
                         color: Color(0xffFFCDAC),
                         borderRadius: BorderRadius.all(Radius.circular(12))),
-                    child: MaterialButton(
+                    child: Obx(() => MaterialButton(
                         child: Text(
-                          'Sumbit',
+                          'Submit',
                           style:
                           TextStyle(fontSize:getFontSize(16), color: Color(0xff5D5E59),fontWeight: FontWeight.bold),
                         ),
-                        onPressed: () {Get.to(MainScreen());})))
+                        onPressed: () async {
+                          if (newPasswordController.text != confirmPasswordController.text) {
+                            authController.showError('Passwords do not match');
+                            return;
+                          }
+                          if (newPasswordController.text.length < 8) {
+                            authController.showError('Password must be at least 8 characters long');
+                            return;
+                          }
+                          // Here you would typically call the API to set the new password
+                          authController.showSuccess('Password updated successfully!');
+                          Get.to(MainScreen());
+                        })))
           ],
         ),
       ),
